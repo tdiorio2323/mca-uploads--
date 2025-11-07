@@ -11,7 +11,8 @@ const DealCard: React.FC<{
   isDragging: boolean;
   onDragStart: (e: React.DragEvent<HTMLDivElement>, dealId: string) => void;
   onDragEnd: () => void;
-}> = ({ deal, merchant, missingDocs, isDragging, onDragStart, onDragEnd }) => {
+  onClick: (dealId: string) => void;
+}> = ({ deal, merchant, missingDocs, isDragging, onDragStart, onDragEnd, onClick }) => {
   if (!merchant) return null;
 
   const isHotLead = deal.stage === DealStage.HotLeads;
@@ -24,9 +25,15 @@ const DealCard: React.FC<{
       draggable
       onDragStart={(e) => onDragStart(e, deal.id)}
       onDragEnd={onDragEnd}
-      className={`mb-3 cursor-grab rounded-md border p-3 transition-all duration-200 hover:shadow-lg active:cursor-grabbing ${
+      onClick={(e) => {
+        // Only navigate if not dragging
+        if (!isDragging && e.currentTarget === e.target) {
+          onClick(deal.id);
+        }
+      }}
+      className={`mb-3 cursor-pointer rounded-md border p-3 transition-all duration-200 hover:shadow-lg ${
         isDragging
-          ? 'relative opacity-75 scale-105 shadow-2xl drop-shadow-[0_5px_15px_rgba(16,185,129,0.3)] z-10'
+          ? 'relative opacity-75 scale-105 shadow-2xl drop-shadow-[0_5px_15px_rgba(16,185,129,0.3)] z-10 cursor-grabbing'
           : 'shadow-sm'
       } ${
         isHotLead
@@ -102,7 +109,7 @@ const KanbanSkeleton: React.FC = () => {
 };
 
 
-const DealsKanbanView: React.FC<{ setView: (view: View) => void }> = ({ setView }) => {
+const DealsKanbanView: React.FC<{ setView: (view: View, merchantId?: string, dealId?: string) => void }> = ({ setView }) => {
   const { deals, setDeals, merchants, documents, loading } = useData();
   const [draggedOverColumn, setDraggedOverColumn] = useState<DealStage | null>(null);
   const [draggedDealId, setDraggedDealId] = useState<string | null>(null);
@@ -167,6 +174,10 @@ const DealsKanbanView: React.FC<{ setView: (view: View) => void }> = ({ setView 
     setDraggedOverColumn(null);
   };
 
+  const handleDealClick = (dealId: string) => {
+    setView('deal-profile', undefined, dealId);
+  };
+
   if (loading) {
       return <KanbanSkeleton />;
   }
@@ -224,6 +235,7 @@ const DealsKanbanView: React.FC<{ setView: (view: View) => void }> = ({ setView 
                       isDragging={draggedDealId === deal.id}
                       onDragStart={handleDragStart}
                       onDragEnd={handleDragEnd}
+                      onClick={handleDealClick}
                     />
                   );
                 })

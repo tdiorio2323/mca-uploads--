@@ -6,6 +6,8 @@ import DashboardView from './components/views/DashboardView';
 import DealsKanbanView from './components/views/DealsKanbanView';
 import MerchantsView from './components/views/MerchantsView';
 import CalendarView from './components/views/CalendarView';
+import MerchantProfileView from './components/views/MerchantProfileView';
+import DealProfileView from './components/views/DealProfileView';
 import CommandPalette from './components/shared/CommandPalette';
 import { useData } from './contexts/DataContext';
 
@@ -13,9 +15,13 @@ import { useData } from './contexts/DataContext';
 const App: React.FC = () => {
   const [view, setView] = useState<View>('dashboard');
   const [isCommandPaletteOpen, setCommandPaletteOpen] = useState(false);
-  
-  const handleSetView = useCallback((newView: View) => {
+  const [selectedMerchantId, setSelectedMerchantId] = useState<string | null>(null);
+  const [selectedDealId, setSelectedDealId] = useState<string | null>(null);
+
+  const handleSetView = useCallback((newView: View, merchantId?: string, dealId?: string) => {
     setView(newView);
+    if (merchantId) setSelectedMerchantId(merchantId);
+    if (dealId) setSelectedDealId(dealId);
   }, []);
 
   useEffect(() => {
@@ -40,9 +46,27 @@ const App: React.FC = () => {
       case 'deals':
         return <DealsKanbanView setView={handleSetView}/>;
       case 'merchants':
-        return <MerchantsView />;
+        return <MerchantsView onSelectMerchant={(id) => handleSetView('merchant-profile', id)} />;
       case 'calendar':
         return <CalendarView />;
+      case 'merchant-profile':
+        return selectedMerchantId ? (
+          <MerchantProfileView
+            merchantId={selectedMerchantId}
+            onBack={() => handleSetView('merchants')}
+          />
+        ) : (
+          <DashboardView />
+        );
+      case 'deal-profile':
+        return selectedDealId ? (
+          <DealProfileView
+            dealId={selectedDealId}
+            onBack={() => handleSetView('deals')}
+          />
+        ) : (
+          <DashboardView />
+        );
       default:
         return <DashboardView />;
     }
@@ -54,6 +78,8 @@ const App: React.FC = () => {
         case 'deals': return 'Deals Pipeline';
         case 'merchants': return 'Merchant Directory';
         case 'calendar': return 'Calendar';
+        case 'merchant-profile': return 'Merchant Profile';
+        case 'deal-profile': return 'Deal Profile';
         default: return 'MCA Nexus CRM';
     }
   };

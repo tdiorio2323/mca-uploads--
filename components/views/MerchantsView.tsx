@@ -6,7 +6,11 @@ import { useData } from '../../contexts/DataContext';
 type SortKey = 'businessName' | 'ownerName' | 'monthlyRevenue' | 'industry' | 'state' | 'stage';
 type SortDirection = 'asc' | 'desc';
 
-const MerchantsView: React.FC = () => {
+interface MerchantsViewProps {
+  onSelectMerchant: (merchantId: string) => void;
+}
+
+const MerchantsView: React.FC<MerchantsViewProps> = ({ onSelectMerchant }) => {
   const { merchants, deals: allDeals, loading } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [sortKey, setSortKey] = useState<SortKey>('businessName');
@@ -115,7 +119,8 @@ const MerchantsView: React.FC = () => {
               {sortedMerchants.map((merchant) => (
                 <tr
                     key={merchant.id}
-                    className="transition-colors duration-150 hover:bg-white/5"
+                    onClick={() => onSelectMerchant(merchant.id)}
+                    className="transition-colors duration-150 hover:bg-white/5 cursor-pointer"
                 >
                   <td className="px-6 py-4 whitespace-nowrap">
                       <div className="font-medium text-white">{merchant.businessName}</div>
@@ -138,7 +143,9 @@ const MerchantsView: React.FC = () => {
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <span className="sr-only">Details for {merchant.businessName}</span>
+                    <button className="text-blue-400 hover:text-blue-300">
+                      View →
+                    </button>
                   </td>
                 </tr>
               ))}
