@@ -1,21 +1,21 @@
 import React, { useState, useMemo } from 'react';
-import { Merchant, DealStatus } from '../../types';
+import { Merchant, DealStage } from '../../types';
 import Skeleton from '../ui/Skeleton';
 import { useData } from '../../contexts/DataContext';
 
-type SortKey = 'name' | 'owner' | 'annualRevenue' | 'nsfCount90Days' | 'creditScore' | 'stage';
+type SortKey = 'businessName' | 'ownerName' | 'monthlyRevenue' | 'industry' | 'state' | 'stage';
 type SortDirection = 'asc' | 'desc';
 
 const MerchantsView: React.FC = () => {
   const { merchants, deals: allDeals, loading } = useData();
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortKey, setSortKey] = useState<SortKey>('name');
+  const [sortKey, setSortKey] = useState<SortKey>('businessName');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
 
   const merchantData = useMemo(() => {
     return merchants.map(merchant => {
       const merchantDeals = allDeals.filter(d => d.merchantId === merchant.id).sort((a,b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
-      const stage = merchantDeals.length > 0 ? merchantDeals[0].status : DealStatus.Lead;
+      const stage = merchantDeals.length > 0 ? merchantDeals[0].stage : DealStage.Leads;
       return { ...merchant, stage };
     });
   }, [merchants, allDeals]);
@@ -101,11 +101,11 @@ const MerchantsView: React.FC = () => {
         <table className="min-w-full divide-y divide-slate-700">
           <thead className="bg-slate-800/50">
             <tr>
-              {renderHeader('name', 'Merchant')}
-              {renderHeader('owner', 'Owner')}
-              {renderHeader('annualRevenue', 'Revenue (Ann.)', 'text-right')}
-              {renderHeader('nsfCount90Days', 'NSF (90d)', 'text-right')}
-              {renderHeader('creditScore', 'Score', 'text-right')}
+              {renderHeader('businessName', 'Business Name')}
+              {renderHeader('ownerName', 'Owner')}
+              {renderHeader('monthlyRevenue', 'Monthly Revenue', 'text-right')}
+              {renderHeader('industry', 'Industry')}
+              {renderHeader('state', 'State')}
               {renderHeader('stage', 'Stage')}
               <th scope="col" className="relative px-6 py-3"><span className="sr-only">Actions</span></th>
             </tr>
@@ -113,25 +113,32 @@ const MerchantsView: React.FC = () => {
           {loading ? <TableSkeleton /> : (
             <tbody className="divide-y divide-slate-800">
               {sortedMerchants.map((merchant) => (
-                <tr 
+                <tr
                     key={merchant.id}
-                    className="transition-colors duration-150"
+                    className="transition-colors duration-150 hover:bg-white/5"
                 >
                   <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="font-medium text-white">{merchant.name}</div>
-                      <div className="text-sm text-slate-400">{merchant.industry}</div>
+                      <div className="font-medium text-white">{merchant.businessName}</div>
+                      <div className="text-sm text-slate-400">{merchant.email}</div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">{merchant.owner}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-slate-300 font-mono">${merchant.annualRevenue.toLocaleString()}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-slate-300 font-mono">{merchant.nsfCount90Days}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${merchant.creditScore >= 750 ? 'bg-accent/20 text-accent' : merchant.creditScore >= 650 ? 'bg-warning/20 text-warning' : 'bg-danger/20 text-danger'}`}>
-                      {merchant.creditScore}
-                    </span>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">{merchant.ownerName}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-slate-300 font-mono">${(merchant.monthlyRevenue / 1000).toFixed(0)}k</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">{merchant.industry}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">{merchant.state}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    {merchant.stage && (
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        merchant.stage === DealStage.HotLeads ? 'bg-orange-500/20 text-orange-300' :
+                        merchant.stage === DealStage.AppOut ? 'bg-blue-500/20 text-blue-300' :
+                        merchant.stage === DealStage.DocsIn ? 'bg-violet-500/20 text-violet-300' :
+                        'bg-slate-500/20 text-slate-300'
+                      }`}>
+                        {merchant.stage}
+                      </span>
+                    )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">{merchant.stage}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <span className="sr-only">Details for {merchant.name}</span>
+                    <span className="sr-only">Details for {merchant.businessName}</span>
                   </td>
                 </tr>
               ))}

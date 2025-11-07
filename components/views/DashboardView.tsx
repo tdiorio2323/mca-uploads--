@@ -1,6 +1,6 @@
 import React from 'react';
 import StatCard from '../ui/StatCard';
-import { DealStatus } from '../../types';
+import { DealStage, DealStageLabels } from '../../types';
 import StatusPill from '../ui/StatusPill';
 import { useData } from '../../contexts/DataContext';
 import Skeleton from '../ui/Skeleton';
@@ -45,25 +45,34 @@ const DashboardSkeleton: React.FC = () => (
 
 const DashboardView: React.FC = () => {
     const { deals, merchants, tasks, loading } = useData();
-    
+
     if (loading) {
         return <DashboardSkeleton />;
     }
 
-    const fundedThisMonth = deals.filter(d => d.status === DealStatus.Funded).reduce((sum, d) => sum + d.amountRequested, 0);
-    const newLeads = deals.filter(d => d.status === DealStatus.Lead).length;
-    const fundedCount = deals.filter(d => d.status === DealStatus.Funded).length;
-    const avgTimeToFund = 14; // Mock data
+    // MCA-specific metrics
+    const totalPipelineValue = deals.reduce((sum, d) => sum + d.requestedAmount, 0);
+    const approvedValue = deals
+        .filter(d => d.approvedAmount !== null)
+        .reduce((sum, d) => sum + (d.approvedAmount || 0), 0);
+    const newLeadsCount = deals.filter(d => d.stage === DealStage.Leads).length;
+    const hotLeadsCount = deals.filter(d => d.stage === DealStage.HotLeads).length;
+    const avgFactorRate = deals
+        .filter(d => d.factorRate !== null)
+        .reduce((sum, d, _, arr) => sum + (d.factorRate || 0) / arr.length, 0)
+        .toFixed(2);
 
-    const hotLeads = merchants
-        .filter(m => m.creditScore > 750 && m.annualRevenue > 1000000)
-        .slice(0, 5)
-        .map(m => ({
-            merchant: m,
-            deal: deals.find(d => d.merchantId === m.id && d.status === DealStatus.Lead)
+    // Hot leads with high revenue and good engagement
+    const hotLeadsWithDeals = deals
+        .filter(d => d.stage === DealStage.HotLeads)
+        .map(d => ({
+            deal: d,
+            merchant: merchants.find(m => m.id === d.merchantId)
         }))
-        .filter(item => item.deal);
+        .filter(item => item.merchant)
+        .slice(0, 5);
 
+    // Overdue tasks and stale deals
     const needsAttention = tasks
         .filter(t => !t.completed && new Date(t.dueDate) < new Date())
         .slice(0, 5)
@@ -72,64 +81,139 @@ const DashboardView: React.FC = () => {
             merchant: merchants.find(m => m.id === t.merchantId)
         }));
 
+    // Pipeline funnel visualization (in order)
+    const stagesInOrder = [
+        DealStage.Leads,
+        DealStage.ChaseDocs,
+        DealStage.DocsIn,
+        DealStage.AppOut,
+        DealStage.HotLeads,
+    ];
+
     return (
         <div className="space-y-6">
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                <StatCard title="Funded This Month" value={`$${(fundedThisMonth / 1000).toFixed(0)}k`} change="+12.5%" changeType="increase" icon={DollarIcon}/>
-                <StatCard title="New Leads" value={newLeads.toString()} change="+5" changeType="increase" icon={UserGroupIcon}/>
-                <StatCard title="Deals Funded" value={fundedCount.toString()} change="-2" changeType="decrease" icon={CheckCircleIcon}/>
-                <StatCard title="Avg. Time to Fund" value={`${avgTimeToFund} Days`} change="-1.2 Days" changeType="decrease" icon={ClockIcon}/>
+                <StatCard
+                    title="Total Pipeline"
+                    value={`$${(totalPipelineValue / 1000).toFixed(0)}k`}
+                    change={`${deals.length} deals`}
+                    changeType="neutral"
+                    icon={DollarIcon}
+                />
+                <StatCard
+                    title="Approved Value"
+                    value={`$${(approvedValue / 1000).toFixed(0)}k`}
+                    change="Ready to fund"
+                    changeType="increase"
+                    icon={CheckCircleIcon}
+                />
+                <StatCard
+                    title="Hot Leads"
+                    value={hotLeadsCount.toString()}
+                    change="Close ASAP"
+                    changeType="increase"
+                    icon={FireIcon}
+                />
+                <StatCard
+                    title="Avg Factor Rate"
+                    value={avgFactorRate || 'N/A'}
+                    change="Current deals"
+                    changeType="neutral"
+                    icon={ClockIcon}
+                />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 bg-white/10 backdrop-blur-lg border border-white/10 p-6 rounded-lg shadow-lg">
-                    <h2 className="text-lg font-semibold text-white mb-4">Pipeline Snapshot</h2>
+                    <h2 className="text-lg font-semibold text-white mb-4">MCA Pipeline Funnel</h2>
                      <div className="h-64 flex items-center justify-center">
-                        <div className="w-full space-y-2">
-                            {Object.values(DealStatus).map(status => {
-                                const count = deals.filter(d => d.status === status).length;
+                        <div className="w-full space-y-3">
+                            {stagesInOrder.map(stage => {
+                                const count = deals.filter(d => d.stage === stage).length;
+                                const totalValue = deals
+                                    .filter(d => d.stage === stage)
+                                    .reduce((sum, d) => sum + d.requestedAmount, 0);
                                 const percentage = deals.length > 0 ? (count / deals.length) * 100 : 0;
+
                                 return (
-                                <div key={status}>
+                                <div key={stage}>
                                     <div className="flex justify-between text-sm mb-1">
-                                        <StatusPill status={status} />
-                                        <span className="text-slate-400">{count} deals</span>
+                                        <div className="flex items-center gap-2">
+                                            <StatusPill stage={stage} />
+                                            <span className="text-white font-medium">{DealStageLabels[stage]}</span>
+                                        </div>
+                                        <div className="text-right">
+                                            <span className="text-slate-300 font-mono">${(totalValue / 1000).toFixed(0)}k</span>
+                                            <span className="text-slate-500 ml-2">({count})</span>
+                                        </div>
                                     </div>
-                                    <div className="w-full bg-slate-700 rounded-full h-2.5">
-                                        <div className="bg-accent h-2.5 rounded-full" style={{ width: `${percentage}%` }}></div>
+                                    <div className="w-full bg-slate-700/50 rounded-full h-3">
+                                        <div
+                                            className={`h-3 rounded-full ${
+                                                stage === DealStage.HotLeads
+                                                    ? 'bg-gradient-to-r from-orange-500 to-red-500'
+                                                    : 'bg-gradient-to-r from-blue-500 to-accent'
+                                            }`}
+                                            style={{ width: `${percentage}%` }}
+                                        ></div>
                                     </div>
                                 </div>
                                 );
                             })}
+                            <div className="pt-2 border-t border-slate-700 flex justify-between text-xs text-slate-400">
+                                <span>Follow Up: {deals.filter(d => d.stage === DealStage.FollowUp).length} deals</span>
+                                <span>${(deals.filter(d => d.stage === DealStage.FollowUp).reduce((sum, d) => sum + d.requestedAmount, 0) / 1000).toFixed(0)}k</span>
+                            </div>
                         </div>
                     </div>
                 </div>
-                
+
                 <div className="space-y-6">
-                    <div className="bg-white/10 backdrop-blur-lg border border-white/10 p-6 rounded-lg shadow-lg">
-                        <h2 className="text-lg font-semibold text-white mb-4 flex items-center"><FireIcon className="w-5 h-5 mr-2 text-red-400"/>Hot Leads</h2>
-                        <ul className="space-y-3">
-                            {hotLeads.map(({merchant, deal}) => merchant && deal && (
-                                <li key={merchant.id} className="flex items-center justify-between text-sm">
-                                    <div>
-                                        <p className="font-medium text-white">{merchant.name}</p>
-                                        <p className="text-slate-400 font-mono">${deal.amountRequested.toLocaleString()}</p>
-                                    </div>
-                                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-accent/20 text-accent`}>{merchant.creditScore}</span>
-                                </li>
-                            ))}
-                        </ul>
+                    <div className="bg-gradient-to-br from-orange-500/10 to-red-500/10 backdrop-blur-lg border border-orange-400/30 p-6 rounded-lg shadow-lg">
+                        <h2 className="text-lg font-semibold text-white mb-4 flex items-center">
+                            <FireIcon className="w-5 h-5 mr-2 text-orange-400"/>
+                            Hot Leads
+                        </h2>
+                        {hotLeadsWithDeals.length === 0 ? (
+                            <p className="text-slate-400 text-sm">No hot leads at the moment</p>
+                        ) : (
+                            <ul className="space-y-3">
+                                {hotLeadsWithDeals.map(({deal, merchant}) => merchant && (
+                                    <li key={deal.id} className="flex items-center justify-between text-sm border-b border-orange-500/20 pb-2">
+                                        <div className="flex-1">
+                                            <p className="font-medium text-white">{merchant.businessName}</p>
+                                            <p className="text-slate-300 font-mono text-xs">
+                                                ${(deal.requestedAmount / 1000).toFixed(0)}k
+                                                {deal.approvedAmount && ` → $${(deal.approvedAmount / 1000).toFixed(0)}k`}
+                                            </p>
+                                        </div>
+                                        <span className="text-xs bg-orange-500 text-white px-2 py-1 rounded-full font-bold">URGENT</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
                     </div>
-                     <div className="bg-white/10 backdrop-blur-lg border border-white/10 p-6 rounded-lg shadow-lg">
-                        <h2 className="text-lg font-semibold text-white mb-4 flex items-center"><ExclamationTriangleIcon className="w-5 h-5 mr-2 text-warning"/>Needs Attention</h2>
-                        <ul className="space-y-3">
-                           {needsAttention.map(({ task, merchant }) => task && merchant && (
-                                <li key={task.id} className="text-sm">
-                                    <p className="font-medium text-white truncate">{task.title}</p>
-                                    <p className="text-slate-400">For: <span className="font-semibold">{merchant.name}</span></p>
-                                </li>
-                           ))}
-                        </ul>
+
+                    <div className="bg-white/10 backdrop-blur-lg border border-white/10 p-6 rounded-lg shadow-lg">
+                        <h2 className="text-lg font-semibold text-white mb-4 flex items-center">
+                            <ExclamationTriangleIcon className="w-5 h-5 mr-2 text-warning"/>
+                            Needs Attention
+                        </h2>
+                        {needsAttention.length === 0 ? (
+                            <p className="text-slate-400 text-sm">All caught up!</p>
+                        ) : (
+                            <ul className="space-y-3">
+                               {needsAttention.map(({ task, merchant }) => task && merchant && (
+                                    <li key={task.id} className="text-sm border-b border-slate-700 pb-2">
+                                        <p className="font-medium text-white truncate">{task.title}</p>
+                                        <p className="text-slate-400 text-xs">
+                                            {merchant.businessName} ·
+                                            <span className="text-red-400 ml-1">Overdue {Math.floor((Date.now() - new Date(task.dueDate).getTime()) / (1000 * 60 * 60 * 24))} days</span>
+                                        </p>
+                                    </li>
+                               ))}
+                            </ul>
+                        )}
                     </div>
                 </div>
             </div>
