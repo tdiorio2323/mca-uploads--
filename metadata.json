@@ -1,0 +1,5 @@
+{
+  "name": "MCA Nexus CRM",
+  "description": "A production-ready CRM web application scaffold for a Merchant Cash Advance (MCA) brokerage. It features a broker dashboard, deals kanban board, merchant directory, detailed merchant profiles with document management and AI-powered analysis previews, a calendar, and a global command palette for efficient navigation and actions.",
+  "requestFramePermissions": []
+}
