@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-slate-900">
+<html lang="en" class="h-full bg-primary">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MCA Nexus CRM</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -19,30 +19,52 @@
             },
             colors: {
               primary: {
-                DEFAULT: '#18181b', // slate-900
-                light: '#27272a', // slate-800
-                dark: '#000000', // slate-950
+                DEFAULT: '#0f172a', // slate-900
+                light: '#1e293b',   // slate-800
+                dark: '#020617',    // slate-950
               },
               accent: {
-                DEFAULT: '#FBBF24', // amber-400
-                hover: '#F59E0B', // amber-500
+                DEFAULT: '#10B981', // emerald-500
+                hover: '#059669',   // emerald-600
               },
               warning: '#F59E0B', // amber-500
               danger: '#EF4444', // red-500
               slate: {
-                50: '#fafafa',
-                100: '#f4f4f5',
-                200: '#e4e4e7',
-                300: '#d4d4d8',
-                400: '#a1a1aa',
-                500: '#71717a',
-                600: '#52525b',
-                700: '#3f3f46',
-                800: '#27272a',
-                900: '#18181b',
-                950: '#000000',
+                50: '#f8fafc',
+                100: '#f1f5f9',
+                200: '#e2e8f0',
+                300: '#cbd5e1',
+                400: '#94a3b8',
+                500: '#64748b',
+                600: '#475569',
+                700: '#334155',
+                800: '#1e293b',
+                900: '#0f172a',
+                950: '#020617',
               }
             },
+            typography: ({ theme }) => ({
+              invert: {
+                css: {
+                  '--tw-prose-body': theme('colors.slate[300]'),
+                  '--tw-prose-headings': theme('colors.white'),
+                  '--tw-prose-lead': theme('colors.slate[400]'),
+                  '--tw-prose-links': theme('colors.white'),
+                  '--tw-prose-bold': theme('colors.white'),
+                  '--tw-prose-counters': theme('colors.slate[400]'),
+                  '--tw-prose-bullets': theme('colors.slate[600]'),
+                  '--tw-prose-hr': theme('colors.slate[700]'),
+                  '--tw-prose-quotes': theme('colors.slate[100]'),
+                  '--tw-prose-quote-borders': theme('colors.slate[700]'),
+                  '--tw-prose-captions': theme('colors.slate[400]'),
+                  '--tw-prose-code': theme('colors.white'),
+                  '--tw-prose-pre-code': theme('colors.slate[300]'),
+                  '--tw-prose-pre-bg': theme('colors.slate[800]'),
+                  '--tw-prose-th-borders': theme('colors.slate[600]'),
+                  '--tw-prose-td-borders': theme('colors.slate[700]'),
+                },
+              },
+            }),
           },
         },
       };
@@ -50,6 +72,7 @@
   <script type="importmap">
 {
   "imports": {
+    "@google/genai": "https://cdn.jsdelivr.net/npm/@google/genai/+esm",
     "@supabase/supabase-js": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm",
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
     "react/": "https://aistudiocdn.com/react@^19.2.0/",
@@ -58,7 +81,7 @@
 }
 </script>
 </head>
-  <body class="h-full font-sans antialiased text-slate-300">
+  <body class="h-full font-sans antialiased text-slate-300 bg-primary-dark">
     <div id="root" class="h-full"></div>
     <script type="module" src="/index.tsx"></script>
   </body>

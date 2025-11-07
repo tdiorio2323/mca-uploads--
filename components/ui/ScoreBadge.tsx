@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 interface ScoreBadgeProps {
@@ -6,16 +5,22 @@ interface ScoreBadgeProps {
 }
 
 const ScoreBadge: React.FC<ScoreBadgeProps> = ({ score }) => {
-  const getColor = () => {
-    if (score >= 85) return 'bg-amber-400 text-amber-950';
-    if (score >= 70) return 'bg-amber-500 text-amber-50';
-    return 'bg-red-500 text-red-50';
+  const getStyles = () => {
+    if (score >= 85) return 'bg-accent text-emerald-950 border-emerald-600';
+    if (score >= 70) return 'bg-warning text-amber-950 border-amber-600';
+    return 'bg-danger text-red-50 border-red-600';
+  };
+
+  const getLabel = () => {
+    if (score >= 85) return 'Excellent';
+    if (score >= 70) return 'Good';
+    return 'Risky';
   };
 
   return (
-    <div className={`flex flex-col items-center justify-center w-24 h-24 rounded-full border-4 ${getColor().replace('bg-', 'border-')}`}>
+    <div className={`flex flex-col items-center justify-center w-24 h-24 rounded-full border-4 ${getStyles()}`}>
       <span className="text-3xl font-bold">{score}</span>
-      <span className="text-xs uppercase tracking-wider">{score >= 85 ? 'Excellent' : score >= 70 ? 'Good' : 'Risky'}</span>
+      <span className="text-xs uppercase tracking-wider">{getLabel()}</span>
     </div>
   );
 };

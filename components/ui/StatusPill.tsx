@@ -6,13 +6,13 @@ interface StatusPillProps {
 }
 
 const statusColors: Record<DealStatus, string> = {
-  [DealStatus.Lead]: 'bg-blue-500/20 text-blue-300',
-  [DealStatus.ChaseDocs]: 'bg-cyan-500/20 text-cyan-300',
-  [DealStatus.AppOut]: 'bg-violet-500/20 text-violet-300',
-  [DealStatus.Underwriting]: 'bg-amber-500/20 text-amber-300',
+  [DealStatus.Lead]: 'bg-slate-500/20 text-slate-300',
+  [DealStatus.Contacted]: 'bg-blue-500/20 text-blue-300',
+  [DealStatus.Documents]: 'bg-violet-500/20 text-violet-300',
+  [DealStatus.Underwriting]: 'bg-warning/20 text-warning',
   [DealStatus.Approved]: 'bg-yellow-500/20 text-yellow-300',
-  [DealStatus.Funded]: 'bg-amber-400/20 text-amber-200',
-  [DealStatus.Rejected]: 'bg-red-500/20 text-red-300',
+  [DealStatus.Funded]: 'bg-accent/20 text-accent',
+  [DealStatus.Rejected]: 'bg-danger/20 text-danger',
 };
 
 const StatusPill: React.FC<StatusPillProps> = ({ status }) => {

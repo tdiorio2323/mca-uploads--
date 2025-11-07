@@ -14,9 +14,21 @@ interface DataContextState {
   error: PostgrestError | null;
   setTasks: React.Dispatch<React.SetStateAction<Task[]>>;
   setDeals: React.Dispatch<React.SetStateAction<Deal[]>>;
+  setDocuments: React.Dispatch<React.SetStateAction<Document[]>>;
+  setCommunications: React.Dispatch<React.SetStateAction<Communication[]>>;
 }
 
 const DataContext = createContext<DataContextState | undefined>(undefined);
+
+const STORAGE_KEY = 'mca-crm-mock-data';
+
+interface StoredData {
+    deals: Deal[];
+    documents: Document[];
+    communications: Communication[];
+    tasks: Task[];
+}
+
 
 export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [merchants, setMerchants] = useState<Merchant[]>([]);
@@ -40,11 +52,29 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const fetchedMerchants = data as Merchant[];
         setMerchants(fetchedMerchants);
         if (fetchedMerchants && fetchedMerchants.length > 0) {
-            const { deals, documents, communications, tasks } = generateAllMockData(fetchedMerchants);
-            setDeals(deals);
-            setDocuments(documents);
-            setCommunications(communications);
-            setTasks(tasks);
+            try {
+                const storedDataRaw = sessionStorage.getItem(STORAGE_KEY);
+                if (storedDataRaw) {
+                    const storedData: StoredData = JSON.parse(storedDataRaw);
+                    setDeals(storedData.deals);
+                    setDocuments(storedData.documents);
+                    setCommunications(storedData.communications);
+                    setTasks(storedData.tasks);
+                } else {
+                    const generatedData = generateAllMockData(fetchedMerchants);
+                    setDeals(generatedData.deals);
+                    setDocuments(generatedData.documents);
+                    setCommunications(generatedData.communications);
+                    setTasks(generatedData.tasks);
+                }
+            } catch (e) {
+                console.error("Failed to load or parse stored data, regenerating.", e);
+                const generatedData = generateAllMockData(fetchedMerchants);
+                setDeals(generatedData.deals);
+                setDocuments(generatedData.documents);
+                setCommunications(generatedData.communications);
+                setTasks(generatedData.tasks);
+            }
         }
       }
       setLoading(false);
@@ -53,7 +83,17 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     fetchData();
   }, []);
 
-  const value = { merchants, deals, documents, communications, tasks, loading, error, setTasks, setDeals };
+  useEffect(() => {
+    if (!loading && merchants.length > 0) {
+      const dataToStore: StoredData = { deals, documents, communications, tasks };
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(dataToStore));
+    }
+  }, [deals, documents, communications, tasks, loading, merchants]);
+
+  const value = { 
+    merchants, deals, documents, communications, tasks, loading, error, 
+    setTasks, setDeals, setDocuments, setCommunications 
+  };
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
 };

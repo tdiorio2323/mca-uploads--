@@ -1,16 +1,12 @@
 import React, { useState, useMemo } from 'react';
-import { Merchant, View, DealStatus } from '../../types';
+import { Merchant, DealStatus } from '../../types';
 import Skeleton from '../ui/Skeleton';
 import { useData } from '../../contexts/DataContext';
 
 type SortKey = 'name' | 'owner' | 'annualRevenue' | 'nsfCount90Days' | 'creditScore' | 'stage';
 type SortDirection = 'asc' | 'desc';
 
-interface MerchantsViewProps {
-    setView: (view: View) => void;
-}
-
-const MerchantsView: React.FC<MerchantsViewProps> = ({ setView }) => {
+const MerchantsView: React.FC = () => {
   const { merchants, deals: allDeals, loading } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [sortKey, setSortKey] = useState<SortKey>('name');
@@ -43,12 +39,13 @@ const MerchantsView: React.FC<MerchantsViewProps> = ({ setView }) => {
       }
       
       if (typeof valA === 'number' && typeof valB === 'number') {
-        return sortDirection === 'asc' ? valA - valB : valB - a[sortKey];
+        return sortDirection === 'asc' ? valA - valB : valB - valA;
       }
       
       return 0;
     });
   }, [filteredMerchants, sortKey, sortDirection]);
+  
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -110,13 +107,16 @@ const MerchantsView: React.FC<MerchantsViewProps> = ({ setView }) => {
               {renderHeader('nsfCount90Days', 'NSF (90d)', 'text-right')}
               {renderHeader('creditScore', 'Score', 'text-right')}
               {renderHeader('stage', 'Stage')}
-              <th scope="col" className="relative px-6 py-3"><span className="sr-only">View</span></th>
+              <th scope="col" className="relative px-6 py-3"><span className="sr-only">Actions</span></th>
             </tr>
           </thead>
           {loading ? <TableSkeleton /> : (
             <tbody className="divide-y divide-slate-800">
               {sortedMerchants.map((merchant) => (
-                <tr key={merchant.id} className="hover:bg-slate-800/50 cursor-pointer" onClick={() => setView(`merchant/${merchant.id}`)}>
+                <tr 
+                    key={merchant.id}
+                    className="transition-colors duration-150"
+                >
                   <td className="px-6 py-4 whitespace-nowrap">
                       <div className="font-medium text-white">{merchant.name}</div>
                       <div className="text-sm text-slate-400">{merchant.industry}</div>
@@ -125,13 +125,13 @@ const MerchantsView: React.FC<MerchantsViewProps> = ({ setView }) => {
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-slate-300 font-mono">${merchant.annualRevenue.toLocaleString()}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-slate-300 font-mono">{merchant.nsfCount90Days}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-right">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${merchant.creditScore >= 750 ? 'bg-amber-400/20 text-amber-300' : merchant.creditScore >= 650 ? 'bg-amber-500/20 text-amber-300' : 'bg-red-500/20 text-red-300'}`}>
+                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${merchant.creditScore >= 750 ? 'bg-accent/20 text-accent' : merchant.creditScore >= 650 ? 'bg-warning/20 text-warning' : 'bg-danger/20 text-danger'}`}>
                       {merchant.creditScore}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">{merchant.stage}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <span className="text-accent hover:text-emerald-400">View</span>
+                    <span className="sr-only">Details for {merchant.name}</span>
                   </td>
                 </tr>
               ))}

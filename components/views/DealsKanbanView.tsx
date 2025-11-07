@@ -7,11 +7,10 @@ import Skeleton from '../ui/Skeleton';
 const DealCard: React.FC<{ 
   deal: Deal; 
   merchant?: Merchant; 
-  setView: (view: View) => void;
   isDragging: boolean;
   onDragStart: (e: React.DragEvent<HTMLDivElement>, dealId: string) => void;
   onDragEnd: () => void;
-}> = ({ deal, merchant, setView, isDragging, onDragStart, onDragEnd }) => {
+}> = ({ deal, merchant, isDragging, onDragStart, onDragEnd }) => {
   if (!merchant) return null;
   
   return (
@@ -19,7 +18,7 @@ const DealCard: React.FC<{
       draggable
       onDragStart={(e) => onDragStart(e, deal.id)}
       onDragEnd={onDragEnd}
-      className={`mb-3 cursor-grab rounded-md border border-white/10 bg-white/10 backdrop-blur-lg p-3 transition-all duration-200 hover:shadow-lg active:cursor-grabbing ${isDragging ? 'relative opacity-75 scale-105 shadow-2xl [filter:drop-shadow(0_5px_15px_rgba(251,191,36,0.3))] z-10' : 'shadow-sm'}`}
+      className={`mb-3 cursor-grab rounded-md border border-white/10 bg-white/10 backdrop-blur-lg p-3 transition-all duration-200 hover:shadow-lg active:cursor-grabbing ${isDragging ? 'relative opacity-75 scale-105 shadow-2xl drop-shadow-[0_5px_15px_rgba(16,185,129,0.3)] z-10' : 'shadow-sm'}`}
     >
       <div className="flex justify-between">
         <h4 className="font-semibold text-white">{merchant.name}</h4>
@@ -27,7 +26,7 @@ const DealCard: React.FC<{
       </div>
       <p className="text-sm text-slate-400">{merchant.industry}</p>
       <div className="mt-3 flex items-center justify-between">
-        <button onClick={() => setView(`merchant/${merchant.id}`)} className="text-xs text-accent hover:underline">View Profile</button>
+        <div className="text-xs text-slate-500">Updated: {new Date(deal.updatedAt).toLocaleDateString()}</div>
         <div className="flex -space-x-2">
             <img className="inline-block h-6 w-6 rounded-full ring-2 ring-slate-800" src="https://picsum.photos/id/1005/50/50" alt="Broker"/>
         </div>
@@ -131,7 +130,6 @@ const DealsKanbanView: React.FC<{ setView: (view: View) => void }> = ({ setView 
                 key={deal.id} 
                 deal={deal} 
                 merchant={merchant} 
-                setView={setView} 
                 isDragging={draggedDealId === deal.id}
                 onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}

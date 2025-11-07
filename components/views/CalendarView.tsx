@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { CalendarEvent } from '../../types';
 import Button from '../ui/Button';
 import EventModal from './EventModal';
+import { useData } from '../../contexts/DataContext';
 
 // Helper function to format date
 const format = (date: Date, formatStr: string) => {
@@ -12,22 +13,48 @@ const format = (date: Date, formatStr: string) => {
     }).format(date);
 };
 
+// Generates mock events relative to the current month
+const generateInitialEvents = (): CalendarEvent[] => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth();
+
+    const formatDate = (d: Date) => d.toISOString().split('T')[0];
+
+    return [
+        { id: 'evt-1', title: 'Follow up: Brooklyn Bagel', start: formatDate(new Date(year, month, 2)), end: formatDate(new Date(year, month, 2)), allDay: true, color: 'bg-blue-600' },
+        { id: 'evt-2', title: 'Underwriting Review: QCC', start: formatDate(new Date(year, month, 5)), end: formatDate(new Date(year, month, 5)), allDay: true, color: 'bg-amber-600' },
+        { id: 'evt-3', title: 'Team Meeting', start: formatDate(new Date(year, month, 11)), end: formatDate(new Date(year, month, 11)), allDay: true, color: 'bg-violet-600' },
+        { id: 'evt-4', title: 'Call with Investor', start: formatDate(new Date(year, month, 11)), end: formatDate(new Date(year, month, 11)), allDay: true, color: 'bg-rose-600' },
+        { id: 'evt-5', title: 'Funding Call: Bronx Auto', start: formatDate(new Date(year, month, 20)), end: formatDate(new Date(year, month, 20)), allDay: true, color: 'bg-emerald-600' },
+        { id: 'evt-6', title: 'Doc Review: Stellar Logistics', start: formatDate(new Date(year, month, 27)), end: formatDate(new Date(year, month, 27)), allDay: true, color: 'bg-cyan-600' },
+    ];
+};
+
+
 const CalendarView: React.FC = () => {
-  const [currentDate, setCurrentDate] = useState(new Date(2023, 9, 15)); // October 15, 2023 for consistent mock data
+  const [currentDate, setCurrentDate] = useState(new Date());
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Partial<CalendarEvent> | null>(null);
+  const [events, setEvents] = useState<CalendarEvent[]>(generateInitialEvents);
+  const { tasks } = useData();
+
+  const allEvents = useMemo(() => {
+      const taskEvents: CalendarEvent[] = tasks
+          .filter(task => !task.completed && task.dueDate)
+          .map(task => ({
+              id: `task-${task.id}`,
+              title: task.title,
+              start: task.dueDate.split('T')[0],
+              end: task.dueDate.split('T')[0],
+              allDay: true,
+              color: 'bg-rose-600', // A distinct color for tasks
+              description: `Task related to merchant: ${task.merchantId}`,
+          }));
+      return [...events, ...taskEvents];
+  }, [events, tasks]);
 
   const today = new Date();
-
-  const [events, setEvents] = useState<CalendarEvent[]>([
-    { id: 'evt-1', title: 'Follow up: Brooklyn Bagel', start: '2023-10-02', end: '2023-10-02', allDay: true, color: 'bg-blue-600' },
-    { id: 'evt-2', title: 'Underwriting Review: QCC', start: '2023-10-05', end: '2023-10-05', allDay: true, color: 'bg-amber-600' },
-    { id: 'evt-3', title: 'Team Meeting', start: '2023-10-11', end: '2023-10-11', allDay: true, color: 'bg-violet-600' },
-    { id: 'evt-4', title: 'Call with Investor', start: '2023-10-11', end: '2023-10-11', allDay: true, color: 'bg-rose-600' },
-    { id: 'evt-5', title: 'Funding Call: Bronx Auto', start: '2023-10-20', end: '2023-10-20', allDay: true, color: 'bg-emerald-600' },
-    { id: 'evt-6', title: 'Doc Review: Stellar Logistics', start: '2023-10-27', end: '2023-10-27', allDay: true, color: 'bg-cyan-600' },
-  ]);
-
   const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
@@ -71,6 +98,10 @@ const CalendarView: React.FC = () => {
   
   const handleEventClick = (e: React.MouseEvent, event: CalendarEvent) => {
     e.stopPropagation();
+    if (event.id.startsWith('task-')) {
+        alert(`This is a task and cannot be edited from the calendar.\n\nTitle: ${event.title}`);
+        return;
+    }
     setSelectedEvent(event);
     setIsModalOpen(true);
   };
@@ -78,7 +109,7 @@ const CalendarView: React.FC = () => {
   const handleSaveEvent = (eventData: Partial<CalendarEvent>) => {
     if (eventData.id) {
         // Update existing event
-        setEvents(events.map(e => e.id === eventData.id ? { ...e, ...eventData } : e));
+        setEvents(events.map(e => e.id === eventData.id ? { ...e, ...eventData } as CalendarEvent : e));
     } else {
         // Create new event, ensuring required fields exist
         if (eventData.title && eventData.start && eventData.end && eventData.color) {
@@ -146,7 +177,7 @@ const CalendarView: React.FC = () => {
           {calendarDays.map(({ date, isCurrentMonth }, index) => {
             const isToday = isSameDay(date, today);
             const dateStr = date.toISOString().split('T')[0];
-            const dayEvents = events.filter(e => e.start === dateStr);
+            const dayEvents = allEvents.filter(e => e.start === dateStr);
             
             return (
               <div

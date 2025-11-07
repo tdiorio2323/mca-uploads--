@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useData } from '../../contexts/DataContext';
 import { View } from '../../types';
 
 interface CommandPaletteProps {
@@ -9,7 +8,6 @@ interface CommandPaletteProps {
 
 const CommandPalette: React.FC<CommandPaletteProps> = ({ onClose, setView }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const { merchants } = useData();
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -28,11 +26,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ onClose, setView }) => 
     { name: 'Calendar', view: 'calendar' as View },
   ];
 
-  const filteredMerchants = searchTerm.length > 1 
-    ? merchants.filter(m => m.name.toLowerCase().includes(searchTerm.toLowerCase()))
-    : [];
-
-  const filteredPages = searchTerm.length > 1
+  const filteredPages = searchTerm.length > 0
     ? pages.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()))
     : pages;
 
@@ -52,25 +46,13 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ onClose, setView }) => 
                 ref={inputRef}
                 type="text"
                 className="h-12 w-full border-0 bg-transparent pl-11 pr-4 text-white placeholder-slate-400 focus:ring-0 sm:text-sm"
-                placeholder="Search for merchants or pages..."
+                placeholder="Search for pages..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
             
             <div className="max-h-[50vh] overflow-y-auto border-t border-slate-700 p-2">
-              {filteredMerchants.length > 0 && (
-                <div className="mb-2">
-                  <h3 className="px-2 text-xs font-semibold text-slate-400 uppercase">Merchants</h3>
-                  <ul className="mt-1">
-                    {filteredMerchants.map(merchant => (
-                      <li key={merchant.id} onClick={() => handleNavigation(`merchant/${merchant.id}`)} className="cursor-pointer rounded-md p-2 text-sm text-slate-200 hover:bg-slate-700">
-                        {merchant.name}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
               {filteredPages.length > 0 && (
                  <div>
                   <h3 className="px-2 text-xs font-semibold text-slate-400 uppercase">Pages</h3>

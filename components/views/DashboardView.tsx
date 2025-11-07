@@ -115,13 +115,13 @@ const DashboardView: React.FC = () => {
                                         <p className="font-medium text-white">{merchant.name}</p>
                                         <p className="text-slate-400 font-mono">${deal.amountRequested.toLocaleString()}</p>
                                     </div>
-                                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-amber-400/20 text-amber-300`}>{merchant.creditScore}</span>
+                                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-accent/20 text-accent`}>{merchant.creditScore}</span>
                                 </li>
                             ))}
                         </ul>
                     </div>
                      <div className="bg-white/10 backdrop-blur-lg border border-white/10 p-6 rounded-lg shadow-lg">
-                        <h2 className="text-lg font-semibold text-white mb-4 flex items-center"><ExclamationTriangleIcon className="w-5 h-5 mr-2 text-amber-400"/>Needs Attention</h2>
+                        <h2 className="text-lg font-semibold text-white mb-4 flex items-center"><ExclamationTriangleIcon className="w-5 h-5 mr-2 text-warning"/>Needs Attention</h2>
                         <ul className="space-y-3">
                            {needsAttention.map(({ task, merchant }) => task && merchant && (
                                 <li key={task.id} className="text-sm">

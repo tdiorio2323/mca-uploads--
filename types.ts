@@ -1,7 +1,7 @@
 export enum DealStatus {
   Lead = 'Lead',
-  ChaseDocs = 'Chase Docs',
-  AppOut = 'App Out',
+  Contacted = 'Contacted',
+  Documents = 'Documents',
   Underwriting = 'Underwriting',
   Approved = 'Approved',
   Funded = 'Funded',
@@ -98,4 +98,4 @@ export interface CalendarEvent {
 }
 
 
-export type View = 'dashboard' | 'deals' | 'merchants' | 'calendar' | `merchant/${string}`;
+export type View = 'dashboard' | 'deals' | 'merchants' | 'calendar';

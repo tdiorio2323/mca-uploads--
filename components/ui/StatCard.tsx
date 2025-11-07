@@ -9,7 +9,7 @@ interface StatCardProps {
 }
 
 const StatCard: React.FC<StatCardProps> = ({ title, value, change, changeType, icon: Icon }) => {
-  const changeColor = changeType === 'increase' ? 'text-amber-400' : 'text-red-400';
+  const changeColor = changeType === 'increase' ? 'text-accent' : 'text-danger';
   
   return (
     <div className="rounded-lg bg-white/10 backdrop-blur-lg border border-white/10 p-5 shadow-lg">
