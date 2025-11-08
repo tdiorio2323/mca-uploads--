@@ -16,25 +16,25 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, setView }) => {
   ];
 
   return (
-    <nav className="flex w-16 flex-col items-center bg-primary-dark p-2 space-y-4">
-      <div className="flex items-center justify-center p-2 rounded-lg bg-accent">
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+    <nav className="flex w-20 flex-col items-center bg-black/60 backdrop-blur-xl border-r border-gold/20 p-3 space-y-6">
+      <div className="flex items-center justify-center p-3 rounded-xl bg-gradient-to-br from-gold/40 to-gold/20 border border-white/30 backdrop-blur-md shadow-lg shadow-gold/20">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white stroke-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
         </svg>
       </div>
-      <div className="flex flex-col space-y-2">
+      <div className="flex flex-col space-y-3 w-full">
         {navItems.map(item => (
           <button
             key={item.id}
             onClick={() => setView(item.id as View)}
-            className={`flex items-center justify-center w-12 h-12 rounded-lg transition-colors duration-200 ${
-              activeView === item.id 
-              ? 'bg-accent text-white' 
-              : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+            className={`flex items-center justify-center w-14 h-14 rounded-xl transition-all duration-200 mx-auto ${
+              activeView === item.id
+              ? 'bg-gradient-to-br from-gold/40 to-gold/20 border border-white/40 text-white shadow-lg shadow-gold/20 backdrop-blur-md'
+              : 'text-slate-400 hover:bg-white/10 hover:border hover:border-white/20 hover:text-white backdrop-blur-sm'
             }`}
             aria-label={item.label}
           >
-            <item.icon className="w-6 h-6" />
+            <item.icon className={`w-7 h-7 ${activeView === item.id ? 'stroke-2' : 'stroke-[1.5]'}`} />
           </button>
         ))}
       </div>

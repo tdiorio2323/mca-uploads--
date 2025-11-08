@@ -9,19 +9,21 @@ interface StatCardProps {
 }
 
 const StatCard: React.FC<StatCardProps> = ({ title, value, change, changeType, icon: Icon }) => {
-  const changeColor = changeType === 'increase' ? 'text-accent' : 'text-danger';
-  
+  const changeColor = changeType === 'increase' ? 'text-gold' : 'text-danger';
+
   return (
-    <div className="rounded-lg bg-white/10 backdrop-blur-lg border border-white/10 p-5 shadow-lg">
+    <div className="rounded-xl bg-white/5 backdrop-blur-xl border border-white/10 p-6 shadow-xl hover:shadow-gold/10 hover:border-gold/30 transition-all duration-200">
       <div className="flex items-center">
         <div className="flex-shrink-0">
-          <Icon className="h-6 w-6 text-slate-400" aria-hidden="true" />
+          <div className="p-3 rounded-xl bg-gradient-to-br from-gold/20 to-gold/5 border border-white/20">
+            <Icon className="h-6 w-6 text-gold-shimmer stroke-2" aria-hidden="true" />
+          </div>
         </div>
         <div className="ml-5 w-0 flex-1">
           <dl>
             <dt className="truncate text-sm font-medium text-slate-400">{title}</dt>
             <dd className="flex items-baseline">
-              <p className="text-2xl font-semibold text-white">{value}</p>
+              <p className="text-2xl font-bold text-white">{value}</p>
               {change && (
                 <p className={`ml-2 flex items-baseline text-sm font-semibold ${changeColor}`}>
                   {changeType === 'increase' ? (
